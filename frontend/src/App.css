@@ -1,0 +1,41 @@
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.card {
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  margin-bottom: 20px;
+}
+
+.table th {
+  background-color: #f8f9fa;
+  font-weight: 600;
+}
+
+.badge {
+  font-size: 0.9em;
+  padding: 0.5em 0.7em;
+}
+
+.nav-tabs .nav-link {
+  cursor: pointer;
+  color: #495057;
+}
+
+.nav-tabs .nav-link.active {
+  font-weight: 600;
+  color: #007bff;
+}
+
+.btn:disabled {
+  cursor: not-allowed;
+}
+
+.alert {
+  margin-bottom: 20px;
+}

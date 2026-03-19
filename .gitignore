@@ -1,0 +1,9 @@
+# Backend
+  pycache__/
+__pycache__/
+*.pyc
+venv/
+*.db
+
+# IDE
+.vscode/
