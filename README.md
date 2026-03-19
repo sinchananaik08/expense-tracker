@@ -2,7 +2,7 @@
 
 A full-stack expense tracking application built with Flask (backend) and React (frontend). Track your expenses by category, view monthly summaries, and manage your spending.
 
-## 🚀 Live Demo (if deployed)
+## 🚀 Live Demo 
 Backend: `http://localhost:5000`
 Frontend: `http://localhost:3000`
 
@@ -18,26 +18,27 @@ Frontend: `http://localhost:3000`
 
 ## 🏗 Architecture
 
+```
 expense-tracker/
-├── backend/ # Flask API
-│ ├── app/
-│ │ ├── models.py # Database models
-│ │ ├── routes.py # API endpoints
-│ │ ├── schemas.py # Pydantic validation
-│ │ ├── database.py # DB configuration
-│ │ └── tests/ # Pytest suite
-│ ├── requirements.txt
-│ └── run.py
-├── frontend/ # React App
-│ ├── src/
-│ │ ├── components/ # React components
-│ │ ├── services/ # API service layer
-│ │ ├── App.js # Main component
-│ │ └── index.js
-│ └── package.json
-├── AI_GUIDANCE.md # AI development guidelines
+├── backend/                 # Flask API
+│   ├── app/
+│   │   ├── models.py       # Database models
+│   │   ├── routes.py       # API endpoints  
+│   │   ├── schemas.py      # Pydantic validation
+│   │   ├── database.py     # DB configuration
+│   │   └── tests/          # Pytest suite
+│   ├── requirements.txt
+│   └── run.py
+├── frontend/                # React App
+│   ├── src/
+│   │   ├── components/     # React components
+│   │   ├── services/       # API service layer
+│   │   ├── App.js          # Main component
+│   │   └── index.js
+│   └── package.json
+├── AI_GUIDANCE.md           # AI development guidelines
 └── README.md
-
+```
 
 ## 🔧 Technical Decisions
 
