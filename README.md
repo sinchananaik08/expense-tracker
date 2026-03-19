@@ -148,14 +148,11 @@ Recurring Expenses - Would need cron jobs, notification system
 📝 API Documentation
 Categories
 GET /api/categories - Get all categories
-
 POST /api/categories - Create category ( {"name": "Food"})
 
 Expenses
 GET /api/expenses - Get all expenses ( optional: ?start_date=&end_date=&category_id=)
-
 POST /api/expenses - Create expense ( {"amount": 100, "description": "Lunch", "category_id": 1, "date": "2026-03-17T00:00:00"})
-
 DELETE /api/expenses/<id> - Delete expense
 
 Summary
