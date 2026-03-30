@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { deleteExpense, updateExpense } from '../services/api';
-import { FaTrash, FaSort, FaSortUp, FaSortDown, FaEdit } from 'react-icons/fa';
+import { FaTrash, FaSort, FaSortUp, FaSortDown, FaEdit, FaSearch, FaTimes } from 'react-icons/fa';
 
 function ExpenseList({ expenses, categories, onExpenseDeleted, onExpenseUpdated, onError }) {
   const [deletingId, setDeletingId] = useState(null);
@@ -9,6 +9,8 @@ function ExpenseList({ expenses, categories, onExpenseDeleted, onExpenseUpdated,
   const [editingExpense, setEditingExpense] = useState(null);
   const [editForm, setEditForm] = useState({});
   const [updating, setUpdating] = useState(false);
+  const [searchText, setSearchText] = useState('');
+  const [filterCategory, setFilterCategory] = useState('');
 
   const handleDelete = async (id) => {
     if (!window.confirm('Are you sure you want to delete this expense?')) return;
@@ -73,7 +75,39 @@ function ExpenseList({ expenses, categories, onExpenseDeleted, onExpenseUpdated,
     return sortDirection === 'asc' ? <FaSortUp /> : <FaSortDown />;
   };
 
-  const sortedExpenses = [...expenses].sort((a, b) => {
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  };
+
+  const getCategoryName = (categoryId) => {
+    const category = categories.find(c => c.id === categoryId);
+    return category ? category.name : 'Unknown';
+  };
+
+  const clearFilters = () => {
+    setSearchText('');
+    setFilterCategory('');
+  };
+
+  const hasActiveFilters = searchText || filterCategory;
+
+  // Apply search and category filter
+  const filteredExpenses = expenses.filter(expense => {
+    const matchesSearch = expense.description
+      .toLowerCase()
+      .includes(searchText.toLowerCase());
+    const matchesCategory = filterCategory
+      ? expense.category_id === parseInt(filterCategory)
+      : true;
+    return matchesSearch && matchesCategory;
+  });
+
+  // Apply sorting on filtered results
+  const sortedExpenses = [...filteredExpenses].sort((a, b) => {
     let aVal = a[sortField];
     let bVal = b[sortField];
     if (sortField === 'amount') {
@@ -87,19 +121,6 @@ function ExpenseList({ expenses, categories, onExpenseDeleted, onExpenseUpdated,
     if (aVal > bVal) return sortDirection === 'asc' ? 1 : -1;
     return 0;
   });
-
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-  };
-
-  const getCategoryName = (categoryId) => {
-    const category = categories.find(c => c.id === categoryId);
-    return category ? category.name : 'Unknown';
-  };
 
   if (expenses.length === 0) {
     return (
@@ -117,68 +138,126 @@ function ExpenseList({ expenses, categories, onExpenseDeleted, onExpenseUpdated,
         <div className="card-header bg-primary text-white d-flex justify-content-between align-items-center">
           <h5 className="mb-0">Expense History</h5>
           <span className="badge bg-light text-dark">
-            {expenses.length} {expenses.length === 1 ? 'expense' : 'expenses'}
+            {sortedExpenses.length} of {expenses.length}{' '}
+            {expenses.length === 1 ? 'expense' : 'expenses'}
           </span>
         </div>
-        <div className="card-body p-0">
-          <div className="table-responsive">
-            <table className="table table-hover mb-0">
-              <thead className="table-light">
-                <tr>
-                  <th onClick={() => handleSort('date')} style={{ cursor: 'pointer' }}>
-                    Date {getSortIcon('date')}
-                  </th>
-                  <th onClick={() => handleSort('description')} style={{ cursor: 'pointer' }}>
-                    Description {getSortIcon('description')}
-                  </th>
-                  <th>Category</th>
-                  <th onClick={() => handleSort('amount')} style={{ cursor: 'pointer' }} className="text-end">
-                    Amount {getSortIcon('amount')}
-                  </th>
-                  <th className="text-end">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {sortedExpenses.map(expense => (
-                  <tr key={expense.id}>
-                    <td>{formatDate(expense.date)}</td>
-                    <td>{expense.description}</td>
-                    <td>
-                      <span className="badge bg-info">
-                        {getCategoryName(expense.category_id)}
-                      </span>
-                    </td>
-                    <td className="text-end fw-bold">
-                      ₹{expense.amount.toFixed(2)}
-                    </td>
-                    <td className="text-end">
-                      <button
-                        className="btn btn-sm btn-warning me-2"
-                        onClick={() => handleEditClick(expense)}
-                      >
-                        <FaEdit />
-                      </button>
-                      <button
-                        className="btn btn-sm btn-danger"
-                        onClick={() => handleDelete(expense.id)}
-                        disabled={deletingId === expense.id}
-                      >
-                        {deletingId === expense.id ? (
-                          <span className="spinner-border spinner-border-sm" />
-                        ) : (
-                          <FaTrash />
-                        )}
-                      </button>
-                    </td>
-                  </tr>
+
+        {/* Search and Filter Bar */}
+        <div className="card-body border-bottom pb-3">
+          <div className="row g-2 align-items-center">
+            <div className="col-md-6">
+              <div className="input-group">
+                <span className="input-group-text bg-white">
+                  <FaSearch className="text-muted" />
+                </span>
+                <input
+                  type="text"
+                  className="form-control border-start-0"
+                  placeholder="Search by description..."
+                  value={searchText}
+                  onChange={(e) => setSearchText(e.target.value)}
+                />
+              </div>
+            </div>
+            <div className="col-md-4">
+              <select
+                className="form-select"
+                value={filterCategory}
+                onChange={(e) => setFilterCategory(e.target.value)}
+              >
+                <option value="">All categories</option>
+                {categories.map(cat => (
+                  <option key={cat.id} value={cat.id}>
+                    {cat.name}
+                  </option>
                 ))}
-              </tbody>
-            </table>
+              </select>
+            </div>
+            <div className="col-md-2">
+              {hasActiveFilters && (
+                <button
+                  className="btn btn-outline-secondary w-100"
+                  onClick={clearFilters}
+                >
+                  <FaTimes className="me-1" /> Clear
+                </button>
+              )}
+            </div>
           </div>
+        </div>
+
+        <div className="card-body p-0">
+          {sortedExpenses.length === 0 ? (
+            <div className="text-center py-4">
+              <p className="text-muted mb-0">No expenses match your search.</p>
+              <button
+                className="btn btn-link btn-sm"
+                onClick={clearFilters}
+              >
+                Clear filters
+              </button>
+            </div>
+          ) : (
+            <div className="table-responsive">
+              <table className="table table-hover mb-0">
+                <thead className="table-light">
+                  <tr>
+                    <th onClick={() => handleSort('date')} style={{ cursor: 'pointer' }}>
+                      Date {getSortIcon('date')}
+                    </th>
+                    <th onClick={() => handleSort('description')} style={{ cursor: 'pointer' }}>
+                      Description {getSortIcon('description')}
+                    </th>
+                    <th>Category</th>
+                    <th onClick={() => handleSort('amount')} style={{ cursor: 'pointer' }} className="text-end">
+                      Amount {getSortIcon('amount')}
+                    </th>
+                    <th className="text-end">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {sortedExpenses.map(expense => (
+                    <tr key={expense.id}>
+                      <td>{formatDate(expense.date)}</td>
+                      <td>{expense.description}</td>
+                      <td>
+                        <span className="badge bg-info">
+                          {getCategoryName(expense.category_id)}
+                        </span>
+                      </td>
+                      <td className="text-end fw-bold">
+                        ₹{expense.amount.toFixed(2)}
+                      </td>
+                      <td className="text-end">
+                        <button
+                          className="btn btn-sm btn-warning me-2"
+                          onClick={() => handleEditClick(expense)}
+                        >
+                          <FaEdit />
+                        </button>
+                        <button
+                          className="btn btn-sm btn-danger"
+                          onClick={() => handleDelete(expense.id)}
+                          disabled={deletingId === expense.id}
+                        >
+                          {deletingId === expense.id ? (
+                            <span className="spinner-border spinner-border-sm" />
+                          ) : (
+                            <FaTrash />
+                          )}
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Edit Modal */}
+      {/* Edit Modal — unchanged */}
       {editingExpense && (
         <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
           <div className="modal-dialog">
