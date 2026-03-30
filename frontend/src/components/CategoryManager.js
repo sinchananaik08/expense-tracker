@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
-import { createCategory, updateCategoryBudget } from '../services/api';
-import { FaPlus, FaTag, FaWallet } from 'react-icons/fa';
+import { createCategory, updateCategoryBudget, deleteCategory } from '../services/api';
+import { FaPlus, FaTag, FaWallet, FaTrash } from 'react-icons/fa';
 
-function CategoryManager({ categories, onCategoryAdded, onError, summary }) {
+function CategoryManager({ categories, onCategoryAdded, onCategoryDeleted, onError, summary }) {
   const [newCategory, setNewCategory] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [editingBudget, setEditingBudget] = useState(null);
   const [budgetValue, setBudgetValue] = useState('');
   const [savingBudget, setSavingBudget] = useState(false);
+  const [deletingId, setDeletingId] = useState(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -52,6 +53,21 @@ function CategoryManager({ categories, onCategoryAdded, onError, summary }) {
     }
   };
 
+  const handleDelete = async (cat) => {
+    if (!window.confirm(`Are you sure you want to delete "${cat.name}"?`)) return;
+    setDeletingId(cat.id);
+    try {
+      await deleteCategory(cat.id);
+      onCategoryDeleted(cat.id);
+    } catch (err) {
+      console.error('Error deleting category:', err);
+      const errorMsg = err.response?.data?.error || 'Failed to delete category';
+      onError(errorMsg);
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   const getSpentAmount = (categoryName) => {
     if (!summary || !summary.category_breakdown) return 0;
     return summary.category_breakdown[categoryName] || 0;
@@ -67,7 +83,6 @@ function CategoryManager({ categories, onCategoryAdded, onError, summary }) {
 
   return (
     <div className="row">
-      {/* Add Category Form */}
       <div className="col-md-4">
         <div className="card">
           <div className="card-header bg-primary text-white">
@@ -111,7 +126,6 @@ function CategoryManager({ categories, onCategoryAdded, onError, summary }) {
         </div>
       </div>
 
-      {/* Categories with Budget */}
       <div className="col-md-8">
         <div className="card">
           <div className="card-header bg-info text-white">
@@ -131,13 +145,23 @@ function CategoryManager({ categories, onCategoryAdded, onError, summary }) {
                   return (
                     <div key={cat.id} className="col-md-6 mb-3">
                       <div className="p-3 bg-light rounded">
-                        {/* Category name and tag */}
                         <div className="d-flex align-items-center mb-2">
                           <FaTag className="text-primary me-2" />
                           <span className="fw-bold flex-grow-1">{cat.name}</span>
+                          <button
+                            className="btn btn-sm btn-outline-danger"
+                            onClick={() => handleDelete(cat)}
+                            disabled={deletingId === cat.id}
+                            title="Delete category"
+                          >
+                            {deletingId === cat.id ? (
+                              <span className="spinner-border spinner-border-sm" />
+                            ) : (
+                              <FaTrash />
+                            )}
+                          </button>
                         </div>
 
-                        {/* Spent amount */}
                         <div className="d-flex justify-content-between mb-1">
                           <small className="text-muted">
                             Spent: <strong>₹{spent.toFixed(2)}</strong>
@@ -149,7 +173,6 @@ function CategoryManager({ categories, onCategoryAdded, onError, summary }) {
                           )}
                         </div>
 
-                        {/* Progress bar */}
                         {status && (
                           <>
                             <div className="progress mb-1" style={{ height: '8px' }}>
@@ -167,7 +190,6 @@ function CategoryManager({ categories, onCategoryAdded, onError, summary }) {
                           </>
                         )}
 
-                        {/* Budget input */}
                         {editingBudget === cat.id ? (
                           <div className="input-group mt-2">
                             <span className="input-group-text">₹</span>

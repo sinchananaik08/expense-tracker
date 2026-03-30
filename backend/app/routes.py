@@ -224,3 +224,27 @@ def update_category_budget(current_user, category_id):
         print(f"Error updating budget: {e}")
         db.session.rollback()
         return jsonify({'error': 'Failed to update budget'}), 500
+
+@api.route('/categories/<int:category_id>', methods=['DELETE'])
+@token_required
+def delete_category(current_user, category_id):
+    try:
+        category = Category.query.filter_by(
+            id=category_id,
+            user_id=current_user.id
+        ).first()
+        if not category:
+            return jsonify({'error': 'Category not found'}), 404
+
+        if len(category.expenses) > 0:
+            return jsonify({
+                'error': f'Cannot delete "{category.name}" — it has {len(category.expenses)} expense(s). Delete those expenses first.'
+            }), 400
+
+        db.session.delete(category)
+        db.session.commit()
+        return jsonify({'message': 'Category deleted successfully'})
+    except Exception as e:
+        print(f"Error deleting category: {e}")
+        db.session.rollback()
+        return jsonify({'error': 'Failed to delete category'}), 500

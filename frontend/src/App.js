@@ -66,6 +66,9 @@ function Dashboard() {
   const handleCategoryAdded = (newCategory) => {
     setCategories([...categories, newCategory]);
   };
+  const handleCategoryDeleted = (categoryId) => {
+  setCategories(categories.filter(c => c.id !== categoryId));
+};
 
   if (loading && expenses.length === 0) {
     return (
@@ -134,7 +137,7 @@ function Dashboard() {
           )}
           {activeTab === 'categories' && (
             <div className="tab-pane active">
-              <CategoryManager categories={categories} onCategoryAdded={handleCategoryAdded} onError={setError} summary={summary} />
+              <CategoryManager categories={categories} onCategoryAdded={handleCategoryAdded} onCategoryDeleted={handleCategoryDeleted}onError={setError} summary={summary} />
             </div>
           )}
         </div>

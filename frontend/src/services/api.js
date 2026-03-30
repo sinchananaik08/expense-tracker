@@ -49,6 +49,7 @@ api.interceptors.response.use(
 export const getCategories = () => api.get('/categories');
 export const createCategory = (data) => api.post('/categories', data);
 export const updateCategoryBudget = (id, budget) => api.put(`/categories/${id}/budget`, { budget });
+export const deleteCategory = (id) => api.delete(`/categories/${id}`);
 
 // Expenses
 export const getExpenses = (params) => api.get('/expenses', { params });
