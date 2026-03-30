@@ -1,14 +1,28 @@
 import React, { useState, useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import ExpenseForm from './components/ExpenseForm.js';
 import ExpenseList from './components/ExpenseList';
 import Summary from './components/Summary';
 import CategoryManager from './components/CategoryManager';
+import LandingPage from './components/LandingPage';
+import LoginPage from './components/LoginPage';
+import RegisterPage from './components/RegisterPage';
 import { getExpenses, getCategories, getMonthlySummary } from './services/api';
-import { FaWallet, FaExclamationTriangle } from 'react-icons/fa';
+import { FaWallet, FaExclamationTriangle, FaSignOutAlt } from 'react-icons/fa';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import './App.css';
 
-function App() {
+// Protected route — redirects to /login if not logged in
+function ProtectedRoute({ children }) {
+  const { user, loading } = useAuth();
+  if (loading) return <div className="container mt-5 text-center"><div className="spinner-border text-primary" role="status"></div></div>;
+  return user ? children : <Navigate to="/login" />;
+}
+
+// Main dashboard (your existing app)
+function Dashboard() {
+  const { user, logout } = useAuth();
   const [expenses, setExpenses] = useState([]);
   const [categories, setCategories] = useState([]);
   const [summary, setSummary] = useState(null);
@@ -16,7 +30,6 @@ function App() {
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState('expenses');
 
-  // Fetch initial data
   useEffect(() => {
     fetchAllData();
   }, []);
@@ -30,7 +43,6 @@ function App() {
         getCategories(),
         getMonthlySummary()
       ]);
-      
       setExpenses(expensesRes.data);
       setCategories(categoriesRes.data);
       setSummary(summaryRes.data);
@@ -44,11 +56,11 @@ function App() {
 
   const handleExpenseAdded = (newExpense) => {
     setExpenses([newExpense, ...expenses]);
-    fetchAllData(); // Refresh summary
+    fetchAllData();
   };
 
   const handleExpenseDeleted = () => {
-    fetchAllData(); // Refresh all data
+    fetchAllData();
   };
 
   const handleCategoryAdded = (newCategory) => {
@@ -68,90 +80,87 @@ function App() {
 
   return (
     <div className="App">
-      {/* Header */}
       <nav className="navbar navbar-dark bg-primary">
         <div className="container">
           <span className="navbar-brand mb-0 h1">
             <FaWallet className="me-2" />
             Simple Expense Tracker
           </span>
+          <div className="d-flex align-items-center gap-3">
+            <span className="text-white">Hi, {user?.name}</span>
+            <button className="btn btn-outline-light btn-sm" onClick={logout}>
+              <FaSignOutAlt className="me-1" /> Logout
+            </button>
+          </div>
         </div>
       </nav>
 
       <div className="container mt-4">
-        {/* Error Alert */}
         {error && (
-      <div className="alert alert-danger alert-dismissible fade show" role="alert">
-      <FaExclamationTriangle className="me-2" />
-      <strong>Error:</strong> {error}
-      <button 
-        type="button" 
-        className="btn-close" 
-        onClick={() => setError(null)}
-        aria-label="Close"
-        ></button>
-     </div>
-  )}
+          <div className="alert alert-danger alert-dismissible fade show" role="alert">
+            <FaExclamationTriangle className="me-2" />
+            <strong>Error:</strong> {error}
+            <button type="button" className="btn-close" onClick={() => setError(null)}></button>
+          </div>
+        )}
 
-        {/* Summary Cards */}
         {summary && <Summary summary={summary} categories={categories} />}
 
-        {/* Tabs */}
         <ul className="nav nav-tabs mt-4">
           <li className="nav-item">
-            <button 
-              className={`nav-link ${activeTab === 'expenses' ? 'active' : ''}`}
-              onClick={() => setActiveTab('expenses')}
-            >
+            <button className={`nav-link ${activeTab === 'expenses' ? 'active' : ''}`} onClick={() => setActiveTab('expenses')}>
               Expenses
             </button>
           </li>
           <li className="nav-item">
-            <button 
-              className={`nav-link ${activeTab === 'categories' ? 'active' : ''}`}
-              onClick={() => setActiveTab('categories')}
-            >
+            <button className={`nav-link ${activeTab === 'categories' ? 'active' : ''}`} onClick={() => setActiveTab('categories')}>
               Categories
             </button>
           </li>
         </ul>
 
-        {/* Tab Content */}
         <div className="tab-content mt-4">
           {activeTab === 'expenses' && (
             <div className="tab-pane active">
               <div className="row">
                 <div className="col-md-4">
-                  <ExpenseForm 
-                    categories={categories} 
-                    onExpenseAdded={handleExpenseAdded}
-                    onError={setError}
-                  />
+                  <ExpenseForm categories={categories} onExpenseAdded={handleExpenseAdded} onError={setError} />
                 </div>
                 <div className="col-md-8">
-                  <ExpenseList 
-                    expenses={expenses}
-                    categories={categories}
-                    onExpenseDeleted={handleExpenseDeleted}
-                    onError={setError}
-                  />
+                  <ExpenseList expenses={expenses} categories={categories} onExpenseDeleted={handleExpenseDeleted} onError={setError} />
                 </div>
               </div>
             </div>
           )}
-
           {activeTab === 'categories' && (
             <div className="tab-pane active">
-              <CategoryManager 
-                categories={categories}
-                onCategoryAdded={handleCategoryAdded}
-                onError={setError}
-              />
+              <CategoryManager categories={categories} onCategoryAdded={handleCategoryAdded} onError={setError} />
             </div>
           )}
         </div>
       </div>
     </div>
+  );
+}
+
+// Root app with routing
+function App() {
+  return (
+    <BrowserRouter>
+      <AuthProvider>
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/dashboard" element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="*" element={<Navigate to="/" />} />
+        </Routes>
+      </AuthProvider>
+    </BrowserRouter>
   );
 }
 
