@@ -127,7 +127,7 @@ function Dashboard() {
                   <ExpenseForm categories={categories} onExpenseAdded={handleExpenseAdded} onError={setError} />
                 </div>
                 <div className="col-md-8">
-                  <ExpenseList expenses={expenses} categories={categories} onExpenseDeleted={handleExpenseDeleted} onError={setError} />
+                  <ExpenseList expenses={expenses} categories={categories} onExpenseDeleted={handleExpenseDeleted} onExpenseUpdated={fetchAllData} onError={setError} />
                 </div>
               </div>
             </div>

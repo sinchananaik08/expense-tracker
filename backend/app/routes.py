@@ -162,3 +162,39 @@ def monthly_summary(current_user):
     except Exception as e:
         print(f"Error getting summary: {e}")
         return jsonify({'error': 'Failed to get summary'}), 500
+        
+@api.route('/expenses/<int:expense_id>', methods=['PUT'])
+@token_required
+def update_expense(current_user, expense_id):
+    try:
+        expense = Expense.query.filter_by(
+            id=expense_id,
+            user_id=current_user.id
+        ).first()
+        if not expense:
+            return jsonify({'error': 'Expense not found'}), 404
+
+        data = request.get_json()
+        validated = ExpenseCreate(**data)
+
+        category = Category.query.filter_by(
+            id=validated.category_id,
+            user_id=current_user.id
+        ).first()
+        if not category:
+            return jsonify({'error': 'Category not found'}), 404
+
+        expense.amount = validated.amount
+        expense.description = validated.description
+        expense.date = validated.date
+        expense.category_id = validated.category_id
+
+        db.session.commit()
+        return jsonify(expense.to_dict()), 200
+
+    except ValidationError as e:
+        return jsonify({'error': e.errors()}), 400
+    except Exception as e:
+        print(f"Error updating expense: {e}")
+        db.session.rollback()
+        return jsonify({'error': 'Failed to update expense'}), 500

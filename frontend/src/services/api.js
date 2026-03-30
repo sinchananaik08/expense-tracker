@@ -53,6 +53,7 @@ export const createCategory = (data) => api.post('/categories', data);
 export const getExpenses = (params) => api.get('/expenses', { params });
 export const createExpense = (data) => api.post('/expenses', data);
 export const deleteExpense = (id) => api.delete(`/expenses/${id}`);
+export const updateExpense = (id, data) => api.put(`/expenses/${id}`, data);
 
 // Summary
 export const getMonthlySummary = () => api.get('/summary/monthly');
@@ -60,5 +61,7 @@ export const getMonthlySummary = () => api.get('/summary/monthly');
 // Auth
 export const registerUser = (data) => api.post('/auth/register', data);
 export const loginUser = (data) => api.post('/auth/login', data);
+
+
 
 export default api;
