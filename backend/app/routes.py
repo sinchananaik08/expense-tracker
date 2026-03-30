@@ -162,7 +162,7 @@ def monthly_summary(current_user):
     except Exception as e:
         print(f"Error getting summary: {e}")
         return jsonify({'error': 'Failed to get summary'}), 500
-        
+
 @api.route('/expenses/<int:expense_id>', methods=['PUT'])
 @token_required
 def update_expense(current_user, expense_id):
@@ -198,3 +198,29 @@ def update_expense(current_user, expense_id):
         print(f"Error updating expense: {e}")
         db.session.rollback()
         return jsonify({'error': 'Failed to update expense'}), 500
+
+@api.route('/categories/<int:category_id>/budget', methods=['PUT'])
+@token_required
+def update_category_budget(current_user, category_id):
+    try:
+        category = Category.query.filter_by(
+            id=category_id,
+            user_id=current_user.id
+        ).first()
+        if not category:
+            return jsonify({'error': 'Category not found'}), 404
+
+        data = request.get_json()
+        budget = data.get('budget')
+
+        if budget is not None and float(budget) <= 0:
+            return jsonify({'error': 'Budget must be greater than 0'}), 400
+
+        category.budget = float(budget) if budget else None
+        db.session.commit()
+
+        return jsonify(category.to_dict()), 200
+    except Exception as e:
+        print(f"Error updating budget: {e}")
+        db.session.rollback()
+        return jsonify({'error': 'Failed to update budget'}), 500

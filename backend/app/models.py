@@ -27,6 +27,7 @@ class Category(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    budget = db.Column(db.Float, nullable=True, default=None) 
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     expenses = db.relationship('Expense', backref='category', lazy=True)
@@ -35,6 +36,7 @@ class Category(db.Model):
         return {
             'id': self.id,
             'name': self.name,
+            'budget': self.budget,
             'created_at': self.created_at.isoformat() if self.created_at else None
         }
 

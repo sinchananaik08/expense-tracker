@@ -134,7 +134,7 @@ function Dashboard() {
           )}
           {activeTab === 'categories' && (
             <div className="tab-pane active">
-              <CategoryManager categories={categories} onCategoryAdded={handleCategoryAdded} onError={setError} />
+              <CategoryManager categories={categories} onCategoryAdded={handleCategoryAdded} onError={setError} summary={summary} />
             </div>
           )}
         </div>
