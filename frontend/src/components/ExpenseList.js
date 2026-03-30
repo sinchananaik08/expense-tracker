@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { deleteExpense, updateExpense } from '../services/api';
-import { FaTrash, FaSort, FaSortUp, FaSortDown, FaEdit, FaSearch, FaTimes } from 'react-icons/fa';
+import { FaTrash, FaSort, FaSortUp, FaSortDown, FaEdit, FaSearch, FaTimes, FaDownload } from 'react-icons/fa';
 
 function ExpenseList({ expenses, categories, onExpenseDeleted, onExpenseUpdated, onError }) {
   const [deletingId, setDeletingId] = useState(null);
@@ -95,7 +95,6 @@ function ExpenseList({ expenses, categories, onExpenseDeleted, onExpenseUpdated,
 
   const hasActiveFilters = searchText || filterCategory;
 
-  // Apply search and category filter
   const filteredExpenses = expenses.filter(expense => {
     const matchesSearch = expense.description
       .toLowerCase()
@@ -106,7 +105,6 @@ function ExpenseList({ expenses, categories, onExpenseDeleted, onExpenseUpdated,
     return matchesSearch && matchesCategory;
   });
 
-  // Apply sorting on filtered results
   const sortedExpenses = [...filteredExpenses].sort((a, b) => {
     let aVal = a[sortField];
     let bVal = b[sortField];
@@ -121,6 +119,26 @@ function ExpenseList({ expenses, categories, onExpenseDeleted, onExpenseUpdated,
     if (aVal > bVal) return sortDirection === 'asc' ? 1 : -1;
     return 0;
   });
+
+  const exportToCSV = () => {
+    const headers = ['Date', 'Description', 'Category', 'Amount (INR)'];
+    const rows = sortedExpenses.map(expense => [
+      formatDate(expense.date),
+      expense.description,
+      getCategoryName(expense.category_id),
+      expense.amount.toFixed(2)
+    ]);
+    const csvContent = [headers, ...rows]
+      .map(row => row.map(cell => `"${cell}"`).join(','))
+      .join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `expenses_${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
 
   if (expenses.length === 0) {
     return (
@@ -137,10 +155,20 @@ function ExpenseList({ expenses, categories, onExpenseDeleted, onExpenseUpdated,
       <div className="card">
         <div className="card-header bg-primary text-white d-flex justify-content-between align-items-center">
           <h5 className="mb-0">Expense History</h5>
-          <span className="badge bg-light text-dark">
-            {sortedExpenses.length} of {expenses.length}{' '}
-            {expenses.length === 1 ? 'expense' : 'expenses'}
-          </span>
+          <div className="d-flex align-items-center gap-2">
+            <span className="badge bg-light text-dark">
+              {sortedExpenses.length} of {expenses.length}{' '}
+              {expenses.length === 1 ? 'expense' : 'expenses'}
+            </span>
+            <button
+              className="btn btn-sm btn-light"
+              onClick={exportToCSV}
+              disabled={sortedExpenses.length === 0}
+              title="Export to CSV"
+            >
+              <FaDownload className="me-1" /> Export CSV
+            </button>
+          </div>
         </div>
 
         {/* Search and Filter Bar */}
@@ -191,10 +219,7 @@ function ExpenseList({ expenses, categories, onExpenseDeleted, onExpenseUpdated,
           {sortedExpenses.length === 0 ? (
             <div className="text-center py-4">
               <p className="text-muted mb-0">No expenses match your search.</p>
-              <button
-                className="btn btn-link btn-sm"
-                onClick={clearFilters}
-              >
+              <button className="btn btn-link btn-sm" onClick={clearFilters}>
                 Clear filters
               </button>
             </div>
@@ -257,7 +282,7 @@ function ExpenseList({ expenses, categories, onExpenseDeleted, onExpenseUpdated,
         </div>
       </div>
 
-      {/* Edit Modal — unchanged */}
+      {/* Edit Modal */}
       {editingExpense && (
         <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
           <div className="modal-dialog">
