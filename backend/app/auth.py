@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 from .database import db
 from .models import User
-from pydantic import ValidationError, BaseModel, EmailStr
+from pydantic import ValidationError, BaseModel, EmailStr, validator
 from werkzeug.security import generate_password_hash, check_password_hash
 import jwt
 import datetime
