@@ -10,3 +10,4 @@ werkzeug==2.3.7
 gunicorn
 psycopg2-binary
 sqlalchemy
+email-validator
