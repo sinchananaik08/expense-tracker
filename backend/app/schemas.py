@@ -1,9 +1,9 @@
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, validator, constr
 from datetime import datetime
 from typing import Optional
 
 class CategoryBase(BaseModel):
-    name: str = Field(..., min_length=1, max_length=50)
+    name: constr(min_length=1, max_length=50)
 
 class CategoryCreate(CategoryBase):
     @validator('name')
@@ -21,7 +21,7 @@ class CategoryResponse(CategoryBase):
 
 class ExpenseBase(BaseModel):
     amount: float = Field(..., gt=0)
-    description: str = Field(..., min_length=1, max_length=200)
+    description: constr(min_length=1, max_length=200)
     date: datetime = Field(default_factory=datetime.utcnow)
     category_id: int = Field(..., gt=0)
 
