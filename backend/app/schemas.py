@@ -1,15 +1,16 @@
-from pydantic import BaseModel, Field, validator, constr
+from pydantic import BaseModel, Field, validator
 from datetime import datetime
-from typing import Optional
 
 class CategoryBase(BaseModel):
-    name: constr(min_length=1, max_length=50)
+    name: str
 
 class CategoryCreate(CategoryBase):
     @validator('name')
     def validate_name(cls, v):
-        if not v.strip():
-            raise ValueError('Category name cannot be empty or whitespace')
+        if not v or not v.strip():
+            raise ValueError('Category name cannot be empty')
+        if len(v.strip()) > 50:
+            raise ValueError('Category name too long')
         return v.strip().title()
 
 class CategoryResponse(CategoryBase):
@@ -20,16 +21,30 @@ class CategoryResponse(CategoryBase):
         orm_mode = True
 
 class ExpenseBase(BaseModel):
-    amount: float = Field(..., gt=0)
-    description: constr(min_length=1, max_length=200)
+    amount: float
+    description: str
     date: datetime = Field(default_factory=datetime.utcnow)
-    category_id: int = Field(..., gt=0)
+    category_id: int
+
+    @validator('amount')
+    def validate_amount(cls, v):
+        if v <= 0:
+            raise ValueError('Amount must be greater than 0')
+        return v
 
     @validator('description')
     def validate_description(cls, v):
-        if not v.strip():
+        if not v or not v.strip():
             raise ValueError('Description cannot be empty')
+        if len(v.strip()) > 200:
+            raise ValueError('Description too long')
         return v.strip()
+
+    @validator('category_id')
+    def validate_category_id(cls, v):
+        if v <= 0:
+            raise ValueError('Invalid category')
+        return v
 
 class ExpenseCreate(ExpenseBase):
     pass
