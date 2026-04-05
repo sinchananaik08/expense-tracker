@@ -58,7 +58,7 @@ function RegisterPage() {
               type="text"
               name="name"
               className="form-control"
-              placeholder="Sinchana Naik"
+              placeholder="John Doe"
               value={formData.name}
               onChange={handleChange}
               required
