@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, validator
 from datetime import datetime
 
 class CategoryBase(BaseModel):
@@ -23,7 +23,7 @@ class CategoryResponse(CategoryBase):
 class ExpenseBase(BaseModel):
     amount: float
     description: str
-    date: datetime = Field(default_factory=datetime.utcnow)
+    date: datetime
     category_id: int
 
     @validator('amount')
@@ -36,8 +36,6 @@ class ExpenseBase(BaseModel):
     def validate_description(cls, v):
         if not v or not v.strip():
             raise ValueError('Description cannot be empty')
-        if len(v.strip()) > 200:
-            raise ValueError('Description too long')
         return v.strip()
 
     @validator('category_id')
